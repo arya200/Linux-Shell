@@ -13,24 +13,15 @@ using namespace std;
 { 
     str += " ";  
     int n = str.length(); 
-  
-   
     int i = 0, j = -1; 
-  
-   
-    bool spaceFound = false; 
-  
-     
-    while (++j < n && str[j] == ' '); 
-  
-   
+    bool spaceFound = false;
+
+    while (++j < n && str[j] == ' ');
+
     while (j < n) 
     { 
-        
         if (str[j] != ' ') 
         { 
-            
-            
             str[i++] = str[j++];
             spaceFound = false; 
         } 
@@ -45,50 +36,35 @@ using namespace std;
         } 
     } 
   
-    if (i <= 1) 
-        str.erase(str.begin() + i, str.end()); 
+    if (i <= 1)
+    {
+        str.erase(str.begin() + i, str.end());
+    }  
     else
+    {
         str.erase(str.begin() + i - 1, str.end()); 
+    }
+       
 }
 
 
 vector<string> split(string str, int& pipe_count, char sep, bool& IOper)
 {
     vector<string> bgs;
-    //istringstream ss(str);
     string token;
     string command = "";
-    //str+= " ";
+
     for(int i=0;i < str.length(); i++)
     {
-
-        // if(pipe_count>1)
-        // {
-        //     if(str.at(i) == sep && command!= " ")
-        //     {
-        //         bgs.push_back(command);
-        //         command="";
-        //     }
-        //     command+= str.at(i);
-        //     continue;
-            
-        // }
        
         if((str.at(i) == '\"' || str.at(i) == '\'') && pipe_count>1)
         {   
-            //command += str.at(i);
-            // i++;
-            // while(str.at(i)!='\"' && str.at(i) != '\'')
-            // {
-            //     command += str.at(i);
-            //     i++;
-            // }
             while(str.at(i) != sep)
             {
                 command += str.at(i);
                 i++;
             }
-            //cout << "The command should return with quotes: " << command << endl;
+            
             bgs.push_back(command);
             command="";
             continue;
@@ -137,7 +113,7 @@ vector<string> split(string str, int& pipe_count, char sep, bool& IOper)
         
         if(str.at(i) == sep)
         {
-            //cout << "command is: " << command << endl;
+        
             if(command!= " " && command!="")
             {
                 bgs.push_back(command);
@@ -155,54 +131,13 @@ vector<string> split(string str, int& pipe_count, char sep, bool& IOper)
         bgs.push_back(command);
     }
     
-
-    // Traverse through all words
-    //cout << str.length();
-    
-    // do { 
-    //     // Read a word 
-    //     string word;
-    //     ss >> word;
-  
-    //     // Print the read word
-    //     bgs.push_back(word);
-    //     //i++;
-    //     // While there is more to read 
-    // } while (ss);
-    // bgs.resize(bgs.size()-1);
-    // return bgs;
-    // if(str.find("|")!= -1)
-    // {
-    //     while(getline(ss, token, '|')) 
-    //     {
-    //         //cout << token <<endl;
-    //         pipe = true;
-    //         bgs.push_back(token);
-    //     }
-    // }
-    // else
-    // {
-        // while(getline(ss, token, sep)) 
-        // {
-
-        //     if(token == "|")
-        //     {
-        //         pipe_count++;
-        //     }
-        //     //cout << "token is: " <<   token <<endl;
-        //     bgs.push_back(token);
-        // }
-    //}
     return bgs;
 }
 
 void find_pipe(string str, int& pipe_count)
 {
     vector<string> bgs;
-    //istringstream ss(str);
-    //string token;
-    //string command = "";
-    //str+= " ";
+    
     for(int i=0;i < str.length(); i++)
     {
         if(str.at(i) == '|')
@@ -243,15 +178,8 @@ char** vec_to_char_array(vector<string>& parts)
 
 int main ()
 {
-    // bool IOper = false;
+
     int pipe_count = 1;
-    //vector<string> test = split("ps aux | awk '{print $1$11}' | sort -r | grep root", pipe_count, '|', IOper);
-    // for(int i=0; i<test.size(); i++)
-    // {
-    //     cout << "command " << i << " " << test[i] << endl;
-    // }
-    // find_pipe("awk '{print $1$11}'<test.txt | head -10 | head -8 | head -7 | sort > output.txt", pipe_count);
-    // cout << "pipe count is: " << pipe_count << endl;
     vector<int> bgs;
     char* prev;
     prev = (char*) malloc( PATH_MAX * sizeof(char) );
@@ -292,10 +220,6 @@ int main ()
         string inputline;
         getline (cin, inputline); //get a line from standard input
         trim(inputline);
-        // if(inputline.find('|') > 0)
-        // {
-        //     ispipe = true;
-        // }
         if (inputline == string("exit"))
         {
             cout << "Bye!! End of shell" << endl;
