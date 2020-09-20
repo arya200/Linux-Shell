@@ -51,6 +51,7 @@ using namespace std;
         str.erase(str.begin() + i - 1, str.end()); 
 }
 
+
 vector<string> split(string str, int& pipe_count, char sep, bool& IOper)
 {
     vector<string> bgs;
@@ -61,10 +62,18 @@ vector<string> split(string str, int& pipe_count, char sep, bool& IOper)
     for(int i=0;i < str.length(); i++)
     {
 
-        if(str.at(i) == '|')
-        {
-            pipe_count ++;
-        }
+        // if(pipe_count>1)
+        // {
+        //     if(str.at(i) == sep && command!= " ")
+        //     {
+        //         bgs.push_back(command);
+        //         command="";
+        //     }
+        //     command+= str.at(i);
+        //     continue;
+            
+        // }
+
         if(str.at(i) == '<' || str.at(i) == '>')
         {
             IOper = true;
@@ -79,7 +88,11 @@ vector<string> split(string str, int& pipe_count, char sep, bool& IOper)
                 command += str.at(i);
                 i++;
             }
-            command += str.at(i);
+            while(str.at(i+1) != sep)
+            {
+                command += str.at(i);
+                i++;
+            }
             //cout << "The command should return with quotes: " << command << endl;
             bgs.push_back(command);
             command="";
@@ -87,7 +100,6 @@ vector<string> split(string str, int& pipe_count, char sep, bool& IOper)
         }
         else if((str.at(i) == '\"' || str.at(i) == '\''))
         {
-    
             i++;
             while(str.at(i)!='\"' && str.at(i) != '\'')
             {
@@ -102,7 +114,7 @@ vector<string> split(string str, int& pipe_count, char sep, bool& IOper)
         if(str.at(i) == sep)
         {
             //cout << "command is: " << command << endl;
-            if(command!= " ")
+            if(command!= " " && command!="")
             {
                 bgs.push_back(command);
             }
@@ -160,36 +172,31 @@ vector<string> split(string str, int& pipe_count, char sep, bool& IOper)
     return bgs;
 }
 
-vector<string> pipe_split(string str, int& pipe_count)
+void find_pipe(string str, int& pipe_count)
 {
     vector<string> bgs;
     //istringstream ss(str);
     //string token;
-    string command = "";
+    //string command = "";
     //str+= " ";
     for(int i=0;i < str.length(); i++)
     {
         if(str.at(i) == '|')
         {
             pipe_count++;
-            //cout << "command is: " << command << endl;
-            if(command!= " ")
-            {
-                bgs.push_back(command);
-            }
-           
-            command="";
-            continue;
         }
-        
-        command+= str.at(i);
-        
+        if((str.at(i) == '\"' || str.at(i) == '\''))
+        {
+            i++;
+            while(str.at(i)!='\"' && str.at(i) != '\'')
+            {
+                i++;
+            }
+            i++;
+        }
+  
     }
-    if(command!="")
-    {
-        bgs.push_back(command);
-    }
-    return bgs;
+  
 }
 
 char** vec_to_char_array(vector<string>& parts)
@@ -213,22 +220,26 @@ char** vec_to_char_array(vector<string>& parts)
 int main ()
 {
     // bool IOper = false;
-    // int pipe_count = 1;
-    // vector<string> test = split("ps aux | awk '{print $1$11}' | sort -r | grep root", pipe_count, '|', IOper);
+    int pipe_count = 1;
+    //vector<string> test = split("ps aux | awk '{print $1$11}' | sort -r | grep root", pipe_count, '|', IOper);
     // for(int i=0; i<test.size(); i++)
     // {
     //     cout << "command " << i << " " << test[i] << endl;
     // }
+    // find_pipe("awk '{print $1$11}'<test.txt | head -10 | head -8 | head -7 | sort > output.txt", pipe_count);
+    // cout << "pipe count is: " << pipe_count << endl;
     vector<int> bgs;
     char* prev;
     prev = (char*) malloc( PATH_MAX * sizeof(char) );
     int backup = dup (0);
+    int backup1 = dup(1);
     while (true)
     {
         // time_t now = time(0);
         // char* dt = ctime(&now);
         time_t my_time = time(NULL); 
         dup2(backup, 0);
+        dup2(backup1, 1);
         bool IOper = false;
         bool bg = false;
         bool dir = false;
@@ -394,15 +405,17 @@ int main ()
         // }
 
         //pipe_count =2;
-        vector<string> pparts = split(inputline, pipe_count, '|', IOper);
+        
+        find_pipe(inputline, pipe_count);
         int temp = pipe_count;
+        vector<string> pparts = split(inputline, pipe_count, '|', IOper);
         //cout << " parts 0 is at line 351: " << parts[0] << endl;
         //if piping operation
-        
         if(pipe_count >1)
         {
             int pid;
             int start_pos = 0;
+            int fds[2];
             for(int i=0; i<pparts.size(); i++)
             {
                 IOper = false;
@@ -444,28 +457,37 @@ int main ()
                         dup2(fd, 0);
                         close(fd); 
                     }
-                    //commands = split(curr_command, pipe_count, ' ', IOper);
+                    curr_command += " ";
+                    commands = split(curr_command, pipe_count, ' ', IOper);
                 }
                 pipe_count = temp;
                 
                 char** pipe_args = vec_to_char_array(commands);
                 
-                int fds[2];
+                
                 pipe(fds);
                 pid = fork();
                 if(pid == 0)
                 {
-                    if(i< pipe_count -1)
+                    if(i< pparts.size() -1)
                     {
                         dup2(fds[1], 1);
-                
+
                     }
 
                     execvp (pipe_args[0], pipe_args);
                 }
                 else
                 {
-                    //waitpid(pid, 0, 0);
+                    if(i==pparts.size()-1)
+                    {
+                        waitpid(pid, 0,0);
+                    }
+                    else
+                    {
+                        bgs.push_back(pid);
+                    }
+                    
                     dup2(fds[0], 0);
                     close(fds[1]);
                 }
@@ -473,6 +495,8 @@ int main ()
             }
 
            waitpid(pid, 0, 0);
+           dup2(fds[0], 0);
+           close(fds[1]);
            continue;
         }
         
@@ -482,7 +506,7 @@ int main ()
         //int pid = 1;
         if (pid == 0)
         {   //cout <<"I make it here" << endl;
-            vector<string> parts;
+            
            if(IOper)
            {
                 int pos_read = inputline.find('<');
@@ -515,10 +539,10 @@ int main ()
                     dup2(fd, 0);
                     close(fd); 
                 }
-                parts = split(inputline, pipe_count, ' ', IOper);
+                
            }
             
-           
+            vector<string> parts = split(inputline, pipe_count, ' ', IOper);
             //cout << "parts is: " << parts[0] << "    " << parts[1] << endl; 
             char** args = vec_to_char_array(parts);
             execvp (args[0], args);
