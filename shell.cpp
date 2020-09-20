@@ -73,22 +73,17 @@ vector<string> split(string str, int& pipe_count, char sep, bool& IOper)
         //     continue;
             
         // }
-
-        if(str.at(i) == '<' || str.at(i) == '>')
-        {
-            IOper = true;
-        }
        
         if((str.at(i) == '\"' || str.at(i) == '\'') && pipe_count>1)
         {   
-            command += str.at(i);
-            i++;
-            while(str.at(i)!='\"' && str.at(i) != '\'')
-            {
-                command += str.at(i);
-                i++;
-            }
-            while(str.at(i+1) != sep)
+            //command += str.at(i);
+            // i++;
+            // while(str.at(i)!='\"' && str.at(i) != '\'')
+            // {
+            //     command += str.at(i);
+            //     i++;
+            // }
+            while(str.at(i) != sep)
             {
                 command += str.at(i);
                 i++;
@@ -109,6 +104,35 @@ vector<string> split(string str, int& pipe_count, char sep, bool& IOper)
             bgs.push_back(command);
             command="";
             continue;
+        }
+
+        if(str.at(i) == '<' || str.at(i) == '>')
+        {
+            IOper = true;
+            string temp;
+            if(str.at(i-1) != ' ' && str.at(i+1) != ' ')
+            {
+                temp = command.substr(0, i);
+                temp += " ";
+                temp += str.at(i);
+                temp += " ";
+                command = temp;
+                i++;
+            }
+            else if(str.at(i-1) != ' ')
+            {
+                temp = command.substr(0, i);
+                temp += " " + str.at(i);
+                command = temp;
+                i++;
+            }
+            else if(str.at(i+1) != ' ')
+            {
+                temp = command.substr(0, i+1) + " ";
+                command = temp; 
+                i++;
+            }
+
         }
         
         if(str.at(i) == sep)
@@ -235,9 +259,16 @@ int main ()
     int backup1 = dup(1);
     while (true)
     {
-        // time_t now = time(0);
-        // char* dt = ctime(&now);
-        time_t my_time = time(NULL); 
+        time_t now = time(0);
+        char* dt = ctime(&now);
+        string time(dt);
+        time = time.substr(0, time.length()-1);
+        dt = NULL;
+        char *p = getenv("USER");
+        if(p==NULL)
+        {
+            return EXIT_FAILURE;
+        }
         dup2(backup, 0);
         dup2(backup1, 1);
         bool IOper = false;
@@ -257,7 +288,7 @@ int main ()
             }
         }
 
-        cout << "AryaRamchandani" << "$ " ; //print a prompt
+        cout << time << " " << p << "$ " ; //print a prompt
         string inputline;
         getline (cin, inputline); //get a line from standard input
         trim(inputline);
@@ -475,7 +506,12 @@ int main ()
 
                     }
 
-                    execvp (pipe_args[0], pipe_args);
+                    if(execvp (pipe_args[0], pipe_args))
+                    {
+                        
+                    cout << "invalid command try again" << endl;
+              
+                    }
                 }
                 else
                 {
@@ -487,20 +523,17 @@ int main ()
                     {
                         bgs.push_back(pid);
                     }
-                    
+                    //bgs.push_back(pid);
                     dup2(fds[0], 0);
                     close(fds[1]);
                 }
                
             }
-
+           bgs.push_back(pid);
            waitpid(pid, 0, 0);
-           dup2(fds[0], 0);
-           close(fds[1]);
            continue;
         }
-        
-        //if not change directory operation fork and proceed.
+    
         
         int pid = fork();
         //int pid = 1;
@@ -545,7 +578,11 @@ int main ()
             vector<string> parts = split(inputline, pipe_count, ' ', IOper);
             //cout << "parts is: " << parts[0] << "    " << parts[1] << endl; 
             char** args = vec_to_char_array(parts);
-            execvp (args[0], args);
+            if(execvp (args[0], args) == -1);
+            {
+                cout << "invalid command try again" << endl;
+                break;
+            }
         }
         else
         { 
