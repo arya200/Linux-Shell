@@ -40,3 +40,7 @@ Note that the &quot;-e&quot; option for the **echo** command prints the string w
 ![echo](https://user-images.githubusercontent.com/59649759/95983106-b5746f00-0e3e-11eb-9d03-7a22720e691f.PNG)
 
 Which does not consider the above command to have redirections or pipes because the corresponding symbols are inside quotation marks.
+
+
+### For an extensive demo please watch this video tutorial here:
+https://youtu.be/S7_FnzQtkJM
